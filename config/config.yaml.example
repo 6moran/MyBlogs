@@ -1,0 +1,76 @@
+# 应用配置
+app:
+  name: "myblogs"
+  version: "1.0.0"
+  mode: "debug"
+  port: 8080
+
+# 服务器配置
+server:
+  addr: ":8080"
+  read_timeout: 10
+  write_timeout: 10
+  read_header_timeout: 5
+  idle_timeout: 120
+  max_header_bytes: 1
+
+# 数据库配置
+database:
+  mysql:
+    host: "localhost"
+    port: 3306
+    username: "root"
+    password: ""
+    database: "myblogs"
+    max_idle_conns: 10
+    max_open_conns: 100
+    max_idle_time: 30
+    max_life_time: 60
+
+  redis:
+    enabled: false
+    host: "127.0.0.1"
+    port: 6379
+    password: ""
+    db: 1
+    pool_size: 10
+
+# JWT 配置
+jwt:
+  access_token_secret: ""
+  refresh_token_secret: ""
+  access_token_expire: 15
+  refresh_token_expire: 7
+
+# 日志配置
+log:
+  level: "debug"
+  filename: "logs/app.log"
+  max_size: 100
+  max_backups: 3
+  max_age: 28
+  compress: true
+
+# MinIO 配置
+minio:
+  endpoint: "localhost:9000"
+  access_key: ""
+  secret_key: ""
+  use_ssl: false
+
+# 跨域配置
+cors:
+  enabled: true
+  allow_origins:
+    - "http://localhost:3000"
+    - "http://localhost:8080"
+  allow_methods:
+    - "GET"
+    - "POST"
+    - "PUT"
+    - "DELETE"
+    - "OPTIONS"
+  allow_headers:
+    - "Origin"
+    - "Content-Type"
+    - "Authorization"
