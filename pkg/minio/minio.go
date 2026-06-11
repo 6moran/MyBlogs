@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"MyBlogs/pkg/config"
+
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
@@ -19,17 +21,17 @@ var minioClient *minio.Client
 var bucketName string
 
 // InitMinIO 初始化 MinIO 客户端
-func InitMinIO(endpoint, accessKey, secretKey, bucket string, useSSL bool) error {
+func InitMinIO(cfg *config.MinioConfig) error {
 	var err error
-	minioClient, err = minio.New(endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(accessKey, secretKey, ""),
-		Secure: useSSL,
+	minioClient, err = minio.New(cfg.Endpoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(cfg.AccessKey, cfg.SecretKey, ""),
+		Secure: cfg.UseSSL,
 	})
 	if err != nil {
 		return fmt.Errorf("创建 MinIO 客户端失败: %w", err)
 	}
 
-	bucketName = bucket
+	bucketName = cfg.BucketName
 
 	// 检查 bucket 是否存在，不存在则创建
 	exists, err := minioClient.BucketExists(context.Background(), bucketName)

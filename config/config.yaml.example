@@ -28,7 +28,6 @@ database:
     max_life_time: 60
 
   redis:
-    enabled: false
     host: "127.0.0.1"
     port: 6379
     password: ""
@@ -57,6 +56,7 @@ minio:
   access_key: ""
   secret_key: ""
   use_ssl: false
+  bucket_name: "myblogs"
 
 # 跨域配置
 cors:
@@ -74,3 +74,9 @@ cors:
     - "Origin"
     - "Content-Type"
     - "Authorization"
+
+# GitHub OAuth配置
+github:
+  client_id: ""
+  client_secret: ""
+  redirect_url: "http://localhost:8080/api/front/auth/github/callback"

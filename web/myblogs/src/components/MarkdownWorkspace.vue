@@ -87,7 +87,6 @@
 </template>
 
 <script setup>
-/* global defineProps, defineEmits */
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { marked } from 'marked'
 import { uploadImage } from '../services/articleService'

@@ -5,10 +5,10 @@ import (
 )
 
 type ArticleRouter struct {
-	ArticleController *ArticleController
+	ArticleController *Controller
 }
 
-func NewArticleRouter(ac *ArticleController) *ArticleRouter {
+func NewArticleRouter(ac *Controller) *ArticleRouter {
 	return &ArticleRouter{
 		ArticleController: ac,
 	}
@@ -26,7 +26,9 @@ func (ar *ArticleRouter) Register(front, admin *gin.RouterGroup) {
 
 	articleFrontGroup := front.Group("/articles")
 	{
-		articleFrontGroup.POST("/images", ar.ArticleController.HandlerImage)
+		articleFrontGroup.GET("", ar.ArticleController.HandlerGetPublishedArticles)
+		articleFrontGroup.GET("/:id", ar.ArticleController.HandlerGetArticleDetail)
+		articleFrontGroup.POST("/:id/like", ar.ArticleController.HandlerLikeArticle)
 	}
 
 }

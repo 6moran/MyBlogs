@@ -7,4 +7,6 @@ type TagRepo interface {
 	DeleteTag(id int) error
 	QueryTagLimit(limit QueryLimit) ([]entity.Tag, error)
 	EditTag(tag *entity.Tag) error
+	FindAll() ([]entity.Tag, error)
+	FindByID(id int) (*entity.Tag, error)
 }

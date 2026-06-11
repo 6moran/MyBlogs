@@ -46,7 +46,6 @@
 </template>
 
 <script setup>
-/* global defineProps, defineEmits */
 import { computed, ref } from 'vue'
 import MarkdownWorkspace from './MarkdownWorkspace.vue'
 import RichTextEditor from './RichTextEditor.vue'
@@ -89,8 +88,8 @@ const modeLabel = computed(() => (mode.value === 'rich' ? '富文本编辑' : 'M
   gap: 18px;
   padding: 24px;
   border: 1px solid var(--line);
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.54);
+  border-radius: var(--radius-xl);
+  background: var(--bg-panel);
 }
 
 .editor-top {
@@ -121,7 +120,7 @@ const modeLabel = computed(() => (mode.value === 'rich' ? '富文本编辑' : 'M
   gap: 0;
   border: 1px solid var(--line);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--bg-panel);
   overflow: hidden;
 }
 
@@ -146,7 +145,7 @@ const modeLabel = computed(() => (mode.value === 'rich' ? '富文本编辑' : 'M
 }
 
 .mode-btn:hover:not(.active) {
-  background: rgba(37, 99, 235, 0.04);
+  background: rgba(192, 57, 43, 0.04);
   color: var(--text-main);
 }
 
@@ -170,7 +169,7 @@ const modeLabel = computed(() => (mode.value === 'rich' ? '富文本编辑' : 'M
 .editor-meta span {
   padding: 8px 12px;
   border-radius: 999px;
-  background: #f5ede1;
+  background: var(--bg-soft);
 }
 
 @media (max-width: 1024px) {

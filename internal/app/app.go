@@ -14,18 +14,23 @@ import (
 	"MyBlogs/internal/service"
 	"MyBlogs/pkg/config"
 	"MyBlogs/pkg/databases"
+	"MyBlogs/pkg/jwt"
 	"MyBlogs/pkg/logger"
+	"MyBlogs/pkg/minio"
+	"MyBlogs/pkg/validator"
 
 	"github.com/gin-gonic/gin"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
 // App 应用容器，集中管理基础设施、依赖装配、路由和 HTTP 服务生命周期
 type App struct {
-	mysqlDB *gorm.DB
-	router  *gin.Engine
-	cfg     *config.Config
-	server  *http.Server
+	mysqlDB     *gorm.DB
+	redisClient *redis.Client
+	router      *gin.Engine
+	cfg         *config.Config
+	server      *http.Server
 }
 
 // New 创建应用容器
@@ -40,9 +45,19 @@ func (a *App) Initialize() error {
 	}
 	a.initLogger()
 	a.initGin()
+	if err := a.initValidator(); err != nil {
+		return err
+	}
 	if err := a.initMySQL(); err != nil {
 		return err
 	}
+	if err := a.initRedis(); err != nil {
+		return err
+	}
+	if err := a.initMinIO(); err != nil {
+		return err
+	}
+	a.initJWT()
 	a.initDependencies()
 	a.initServe()
 	return nil
@@ -71,6 +86,15 @@ func (a *App) initGin() {
 	gin.SetMode(gin.DebugMode)
 }
 
+// initValidator 初始化自定义校验器
+func (a *App) initValidator() error {
+	if err := validator.InitCustomVali(); err != nil {
+		return fmt.Errorf("初始化校验器失败: %w", err)
+	}
+	logger.Info("校验器初始化完成")
+	return nil
+}
+
 // initMySQL 初始化 MySQL
 func (a *App) initMySQL() error {
 	db, err := databases.InitDB(&a.cfg.Database.MySQL)
@@ -82,23 +106,64 @@ func (a *App) initMySQL() error {
 	return nil
 }
 
+// initRedis 初始化 Redis
+func (a *App) initRedis() error {
+	rdb, err := databases.InitRedis(&a.cfg.Database.Redis)
+	if err != nil {
+		return fmt.Errorf("初始化 Redis 失败: %w", err)
+	}
+	a.redisClient = rdb
+	logger.Info("Redis初始化完成")
+	return nil
+}
+
+// initMinIO 初始化 MinIO
+func (a *App) initMinIO() error {
+	err := minio.InitMinIO(&a.cfg.Minio)
+	if err != nil {
+		return fmt.Errorf("初始化 MinIO 失败: %w", err)
+	}
+	logger.Info("MinIO初始化完成")
+	return nil
+}
+
+// initJWT 初始化 JWT 配置
+func (a *App) initJWT() {
+	jwt.InitJWT(&a.cfg.JWT)
+	logger.Info("JWT初始化完成")
+}
+
 // initDependencies 集中装配 Repository、Service 和 Controller 依赖
 func (a *App) initDependencies() {
 	// Repository 层
-	articleRepo := repository.NewArticleRepo(a.mysqlDB)
-	userRepo := repository.NewUserRepo(a.mysqlDB)
+	articleRepo := repository.NewArticleRepo(a.mysqlDB, a.redisClient)
+	userRepo := repository.NewUserRepository(a.mysqlDB)
 	tagRepo := repository.NewTagRepo(a.mysqlDB)
+	commentRepo := repository.NewCommentRepository(a.mysqlDB)
 
 	// Service 层
 	articleService := service.NewArticleService(articleRepo)
+	authService := service.NewAuthService(userRepo, a.cfg)
 	userService := service.NewUserService(userRepo)
 	tagService := service.NewTagService(tagRepo)
+	commentService := service.NewCommentService(commentRepo, userRepo, articleRepo)
+	captchaService := service.NewCaptchaService()
+
+	// 启动点赞数同步任务（每5分钟同步一次）
+	if a.redisClient != nil {
+		articleService.StartLikeSync(5 * time.Minute)
+		logger.Info("点赞数同步任务已启动")
+	}
 
 	// 路由注册
 	a.router = api.NewRouter(api.Dependencies{
 		ArticleService: articleService,
+		AuthService:    authService,
 		UserService:    userService,
 		TagService:     tagService,
+		CommentService: commentService,
+		CaptchaService: captchaService,
+		Config:         a.cfg,
 	})
 }
 

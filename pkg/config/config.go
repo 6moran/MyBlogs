@@ -9,6 +9,7 @@ type Config struct {
 	Minio    MinioConfig    `mapstructure:"minio"`
 	CORS     CORSConfig     `mapstructure:"cors"`
 	App      AppConfig      `mapstructure:"app"`
+	GitHub   GitHubConfig   `mapstructure:"github"`
 }
 
 // AppConfig 应用配置
@@ -78,10 +79,11 @@ type LogConfig struct {
 
 // MinioConfig MinIO 对象存储配置
 type MinioConfig struct {
-	Endpoint  string `mapstructure:"endpoint"`
-	AccessKey string `mapstructure:"access_key"`
-	SecretKey string `mapstructure:"secret_key"`
-	UseSSL    bool   `mapstructure:"use_ssl"`
+	Endpoint   string `mapstructure:"endpoint"`
+	AccessKey  string `mapstructure:"access_key"`
+	SecretKey  string `mapstructure:"secret_key"`
+	UseSSL     bool   `mapstructure:"use_ssl"`
+	BucketName string `mapstructure:"bucket_name"`
 }
 
 // CORSConfig 跨域配置
@@ -90,4 +92,11 @@ type CORSConfig struct {
 	AllowOrigins []string `mapstructure:"allow_origins"`
 	AllowMethods []string `mapstructure:"allow_methods"`
 	AllowHeaders []string `mapstructure:"allow_headers"`
+}
+
+// GitHubConfig GitHub OAuth配置
+type GitHubConfig struct {
+	ClientID     string `mapstructure:"client_id"`
+	ClientSecret string `mapstructure:"client_secret"`
+	RedirectURL  string `mapstructure:"redirect_url"`
 }

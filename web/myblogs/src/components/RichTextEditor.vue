@@ -83,7 +83,6 @@
 </template>
 
 <script setup>
-/* global defineProps, defineEmits */
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
@@ -506,7 +505,7 @@ const toolbarButtons = computed(() => {
 .toolbar-btn.active {
   background: var(--accent-soft);
   color: var(--accent);
-  border-color: rgba(37, 99, 235, 0.2);
+  border-color: rgba(192, 57, 43, 0.2);
 }
 
 .btn-icon {
@@ -645,7 +644,7 @@ const toolbarButtons = computed(() => {
 
 .dialog-input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.1);
 }
 
 .dialog-actions {

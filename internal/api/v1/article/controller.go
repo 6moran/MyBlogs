@@ -3,154 +3,208 @@ package article
 import (
 	"MyBlogs/internal/model/dto/request"
 	"MyBlogs/internal/service"
-	zap2 "MyBlogs/pkg/logger"
-	utils2 "MyBlogs/pkg/minio"
-	"fmt"
+	bizerrors "MyBlogs/pkg/errors"
+	"MyBlogs/pkg/logger"
+	"MyBlogs/pkg/minio"
+	"MyBlogs/pkg/response"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"strconv"
 )
 
 const (
 	MaxImageSize = 5 * 1024 * 1024
 )
 
-type ArticleController struct {
+type Controller struct {
 	AS service.ArticleService
 }
 
-func NewArticleController(s service.ArticleService) *ArticleController {
-	return &ArticleController{
-		AS: s,
-	}
+func NewArticleController(s service.ArticleService) *Controller {
+	return &Controller{AS: s}
 }
 
-// 创建文章
-func (artC *ArticleController) HandlerCreateArticle(c *gin.Context) {
+// HandlerCreateArticle 创建文章
+func (artC *Controller) HandlerCreateArticle(c *gin.Context) {
 	var car request.CreateArticleRequest
-	err := c.ShouldBindJSON(&car)
-	if err != nil {
-		zap2.Warn("JSON解析失败", zap.Error(fmt.Errorf("ShouldBindJSON() failed,err:%v", err)))
-		c.JSON(400, gin.H{
-			"msg": "参数错误",
-		})
+	if err := c.ShouldBindJSON(&car); err != nil {
+		logger.Warn("JSON解析失败", zap.Error(err))
+		response.BadRequest(c, "参数错误")
 		return
 	}
-	err = artC.AS.CreateNewArticle(car)
-	if err != nil {
-		zap2.Error("创建文章失败", zap.Error(fmt.Errorf("CreateNewArticle() failed,err:%v", err)))
-		c.JSON(500, gin.H{
-			"msg": "服务器出错",
-		})
+	if err := artC.AS.CreateNewArticle(car); err != nil {
+		if bizerrors.IsBizError(err) {
+			logger.Warn("创建文章失败", zap.Error(err))
+			response.BizError(c, err)
+		} else {
+			logger.Error("创建文章失败", zap.Error(err))
+			response.InternalServerError(c)
+		}
 		return
 	}
-	c.JSON(200, gin.H{
-		"msg": "创建成功",
-	})
+	response.Success(c, nil)
 }
 
-func (artC *ArticleController) HandlerGetArticleLimit(c *gin.Context) {
+// HandlerGetArticleLimit 获取文章分页列表
+func (artC *Controller) HandlerGetArticleLimit(c *gin.Context) {
 	var qar request.QueryArticleRequest
-	err := c.ShouldBindQuery(&qar)
-	if err != nil {
-		zap2.Warn("JSON解析失败", zap.Error(fmt.Errorf("ShouldBindQuery() failed,err:%v", err)))
-		c.JSON(400, gin.H{
-			"msg": "参数错误",
-		})
+	if err := c.ShouldBindQuery(&qar); err != nil {
+		logger.Warn("参数解析失败", zap.Error(err))
+		response.BadRequest(c, "参数错误")
 		return
 	}
 	res, total, err := artC.AS.GetArticleLimit(qar)
 	if err != nil {
-		zap2.Error("查询文章失败", zap.Error(fmt.Errorf("GetArticleLimit() failed,err:%v", err)))
-		c.JSON(500, gin.H{
-			"msg": "服务器出错",
-		})
+		if bizerrors.IsBizError(err) {
+			logger.Warn("查询文章失败", zap.Error(err))
+			response.BizError(c, err)
+		} else {
+			logger.Error("查询文章失败", zap.Error(err))
+			response.InternalServerError(c)
+		}
 		return
 	}
-	c.JSON(200, gin.H{
+	response.Success(c, gin.H{
 		"data":  res,
 		"total": total,
 	})
-
 }
 
-// 删除文章
-func (artC *ArticleController) HandlerDeleteArticle(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := strconv.Atoi(idStr)
+// HandlerDeleteArticle 删除文章
+func (artC *Controller) HandlerDeleteArticle(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		zap2.Warn("Atoi转换失败", zap.Error(fmt.Errorf("Atoi() failed,err:%v", err)))
-		c.JSON(400, gin.H{
-			"msg": "参数错误",
-		})
+		logger.Warn("参数错误", zap.Error(err))
+		response.BadRequest(c, "参数错误")
 		return
 	}
-	err = artC.AS.DeleteArticle(id)
-	if err != nil {
-		zap2.Error("删除文章失败", zap.Error(fmt.Errorf("DeleteArticle() failed,err:%v", err)))
-		c.JSON(500, gin.H{
-			"msg": "服务器出错",
-		})
+	if err = artC.AS.DeleteArticle(id); err != nil {
+		if bizerrors.IsBizError(err) {
+			logger.Warn("删除文章失败", zap.Error(err))
+			response.BizError(c, err)
+		} else {
+			logger.Error("删除文章失败", zap.Error(err))
+			response.InternalServerError(c)
+		}
 		return
 	}
-	c.JSON(200, gin.H{
-		"msg": "删除成功",
-	})
-
+	response.Success(c, nil)
 }
 
-// 上传图片
-func (artC *ArticleController) HandlerImage(c *gin.Context) {
+// HandlerGetPublishedArticles 获取已发布的文章列表
+func (artC *Controller) HandlerGetPublishedArticles(c *gin.Context) {
+	var req request.PublishedArticleRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		logger.Warn("参数解析失败", zap.Error(err))
+		response.BadRequest(c, "参数错误")
+		return
+	}
+
+	if req.Page < 1 {
+		req.Page = 1
+	}
+	if req.Size < 1 || req.Size > 50 {
+		req.Size = 10
+	}
+
+	resp, err := artC.AS.GetPublishedArticles(req.Page, req.Size, req.TagID, req.Keyword)
+	if err != nil {
+		if bizerrors.IsBizError(err) {
+			logger.Warn("查询文章失败", zap.Error(err))
+			response.BizError(c, err)
+		} else {
+			logger.Error("查询文章失败", zap.Error(err))
+			response.InternalServerError(c)
+		}
+		return
+	}
+	response.Success(c, resp)
+}
+
+// HandlerGetArticleDetail 获取文章详情
+func (artC *Controller) HandlerGetArticleDetail(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		response.BadRequest(c, "参数错误")
+		return
+	}
+
+	resp, err := artC.AS.GetArticleDetail(id)
+	if err != nil {
+		if bizerrors.IsBizError(err) {
+			logger.Warn("查询文章详情失败", zap.Error(err))
+			response.BizError(c, err)
+		} else {
+			logger.Error("查询文章详情失败", zap.Error(err))
+			response.InternalServerError(c)
+		}
+		return
+	}
+	response.Success(c, resp)
+}
+
+// HandlerLikeArticle 点赞文章
+func (artC *Controller) HandlerLikeArticle(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		response.BadRequest(c, "参数错误")
+		return
+	}
+
+	likeCount, err := artC.AS.LikeArticle(id)
+	if err != nil {
+		logger.Error("点赞失败", zap.Error(err))
+		response.InternalServerError(c)
+		return
+	}
+
+	response.Success(c, gin.H{"like_count": likeCount})
+}
+
+// HandlerImage 上传图片
+func (artC *Controller) HandlerImage(c *gin.Context) {
+	articleID, _ := strconv.Atoi(c.PostForm("article_id"))
+
 	fileHeader, err := c.FormFile("image")
 	if err != nil {
-		zap2.Error("上传图片失败", zap.Error(fmt.Errorf("FormFile() failed,err:%v", err)))
-		c.JSON(400, gin.H{
-			"msg": "参数错误",
-		})
+		logger.Warn("上传图片失败", zap.Error(err))
+		response.BadRequest(c, "参数错误")
 		return
 	}
 
-	//校验图片类型
-	if !utils2.IsImageFile(fileHeader.Filename) {
-		zap2.Warn("图片格式有误")
-		c.JSON(400, gin.H{
-			"msg": "只支持图片格式",
-		})
+	if !minio.IsImageFile(fileHeader.Filename) {
+		logger.Warn("图片格式有误")
+		response.BadRequest(c, "只支持图片格式")
 		return
 	}
-	//校验图片大小
 	if fileHeader.Size > MaxImageSize {
-		zap2.Warn("图片大小超出")
-		c.JSON(400, gin.H{
-			"msg": "图片不能超过5MB",
-		})
+		logger.Warn("图片大小超出")
+		response.BadRequest(c, "图片不能超过5MB")
 		return
 	}
 
 	file, err := fileHeader.Open()
 	if err != nil {
+		response.InternalServerError(c)
 		return
 	}
 	defer func() {
-		err := file.Close()
-		if err != nil {
-			zap2.Error("文件关闭失败", zap.Error(fmt.Errorf("file.Close() failed,err:%v", err)))
-			return
+		if err := file.Close(); err != nil {
+			logger.Error("文件关闭失败", zap.Error(err))
 		}
 	}()
 
-	//业务逻辑
-	filePath, err := artC.AS.SaveImage(file, fileHeader)
+	filePath, err := artC.AS.SaveImage(file, fileHeader, articleID)
 	if err != nil {
-		zap2.Error("上传图片失败", zap.Error(fmt.Errorf("SaveImage() failed,err:%v", err)))
-		c.JSON(500, gin.H{
-			"msg": "系统错误",
-		})
+		if bizerrors.IsBizError(err) {
+			logger.Warn("上传图片失败", zap.Error(err))
+			response.BizError(c, err)
+		} else {
+			logger.Error("上传图片失败", zap.Error(err))
+			response.InternalServerError(c)
+		}
 		return
 	}
-
-	//成功返回内部路径
-	c.JSON(200, gin.H{
-		"data": filePath,
-	})
+	response.Success(c, filePath)
 }

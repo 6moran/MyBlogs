@@ -7,7 +7,16 @@ type CommentResponse struct {
 	ParentID  int       `json:"parent_id"`
 	RootID    int       `json:"root_id"`
 	UserID    int       `json:"user_id"`
+	Username  string    `json:"username"`
+	Nickname  string    `json:"nickname"`
+	Avatar    string    `json:"avatar"`
 	Content   string    `json:"content"`
-	LikeCount int       `json:"like_count"`
-	CreateAt  time.Time `json:"create_at"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+type CommentListResponse struct {
+	Comments []CommentResponse `json:"comments"`
+	Total    int64             `json:"total"`
+	Page     int               `json:"page"`
+	Size     int               `json:"size"`
 }

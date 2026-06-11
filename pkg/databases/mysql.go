@@ -19,17 +19,16 @@ func InitDB(cfg *config.MySQLConfig) (*gorm.DB, error) {
 		DisableForeignKeyConstraintWhenMigrating: true,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("gorm.Open() failed,err:%w", err)
+		return nil, fmt.Errorf("数据库连接失败: %w", err)
 	}
 
 	err = db.AutoMigrate(
 		&entity.User{},
 		&entity.Tag{},
-		&entity.Category{},
 		&entity.Article{},
 		&entity.Comment{})
 	if err != nil {
-		return nil, fmt.Errorf("db.AutoMigrate failed,err:%w", err)
+		return nil, fmt.Errorf("数据库迁移失败: %w", err)
 	}
 	return db, nil
 }

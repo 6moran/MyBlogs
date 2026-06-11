@@ -5,7 +5,6 @@ import "time"
 type Comment struct {
 	ID        int    `gorm:"primaryKey"`
 	Content   string `gorm:"type:text;not null"`
-	LikeCount int    `gorm:"default:0"`
 	CreatedAt time.Time
 
 	//属于哪一篇文章

@@ -1,189 +1,38 @@
 <template>
-  <section class="user-manage-page">
-    <div class="scroll-container">
-    <header class="page-header">
-      <div>
-        <p class="page-kicker">用户管理</p>
-        <h2>管理用户账号</h2>
-        <p class="page-desc">管理用户账号、角色与权限，维护系统安全。</p>
-      </div>
-      <button class="primary-btn" type="button">
-        <span class="btn-icon">+</span>
-        新建用户
-      </button>
-    </header>
+  <section class="admin-page">
+    <div class="admin-scroll">
+      <header class="admin-header">
+        <div>
+          <span class="admin-label">用户管理</span>
+          <h2>管理用户账号</h2>
+          <p class="admin-desc">管理用户账号、角色与权限，维护系统安全。</p>
+        </div>
+        <button class="admin-btn admin-btn-primary" type="button">
+          <span class="admin-btn-icon">+</span>
+          新建用户
+        </button>
+      </header>
 
-    <section class="list-panel">
-      <div class="toolbar">
-        <label class="search-shell">
-          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          <input type="text" class="search-input" placeholder="搜索用户名或邮箱" />
-        </label>
-      </div>
+      <section class="admin-panel">
+        <div class="admin-toolbar">
+          <label class="admin-search">
+            <svg class="admin-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" class="admin-search-input" placeholder="搜索用户名或邮箱" />
+          </label>
+        </div>
 
-      <div class="user-list">
-        <div class="empty-state">
+        <div class="admin-empty">
           <h3>暂无用户</h3>
           <p>点击上方「新建用户」按钮创建第一个用户账号。</p>
-          <button class="primary-btn" type="button">
-            <span class="btn-icon">+</span>
+          <button class="admin-btn admin-btn-primary" type="button">
+            <span class="admin-btn-icon">+</span>
             新建用户
           </button>
         </div>
-      </div>
-    </section>
+      </section>
     </div>
   </section>
 </template>
 
 <script setup>
 </script>
-
-<style scoped>
-.user-manage-page {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.scroll-container {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  scrollbar-gutter: stable;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: contain;
-  display: grid;
-  gap: 18px;
-  align-content: start;
-  padding: 0 20px 30px 0;
-}
-
-.page-header,
-.list-panel {
-  padding: 24px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-xl);
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: var(--shadow);
-}
-
-.page-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18px;
-}
-
-.page-kicker {
-  margin: 0 0 8px;
-  color: var(--text-subtle);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.page-header h2 {
-  margin: 0;
-  font-size: 30px;
-  line-height: 1.2;
-}
-
-.page-desc {
-  max-width: 620px;
-  margin: 12px 0 0;
-  color: var(--text-subtle);
-  line-height: 1.7;
-}
-
-.toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.search-shell {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: min(360px, 100%);
-}
-
-.search-icon {
-  position: absolute;
-  left: 14px;
-  color: var(--text-subtle);
-}
-
-.search-input {
-  width: 100%;
-  padding: 12px 14px 12px 42px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--bg-soft);
-  color: var(--text-main);
-  outline: none;
-  transition: 0.2s ease;
-}
-
-.search-input:focus {
-  border-color: rgba(37, 99, 235, 0.4);
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
-}
-
-.user-list {
-  display: grid;
-  gap: 14px;
-}
-
-.primary-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 18px;
-  border: 0;
-  border-radius: 14px;
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  color: #fff;
-  font-weight: 700;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.primary-btn:hover {
-  transform: translateY(-1px);
-}
-
-.btn-icon {
-  font-size: 20px;
-  line-height: 1;
-}
-
-.empty-state {
-  padding: 42px 20px;
-  border: 1px dashed var(--line-strong);
-  border-radius: var(--radius-lg);
-  text-align: center;
-  background: #fff;
-}
-
-.empty-state h3 {
-  margin: 0 0 10px;
-  font-size: 24px;
-}
-
-.empty-state p {
-  max-width: 420px;
-  margin: 0 auto 20px;
-  color: var(--text-subtle);
-  line-height: 1.7;
-}
-</style>

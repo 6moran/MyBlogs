@@ -17,10 +17,6 @@ type Article struct {
 	UserID int `gorm:"not null"`
 	User   User
 
-	//属于哪一个分类
-	CategoryID int `gorm:"not null"`
-	Category   Category
-
 	//拥有的标签
 	Tags []Tag `gorm:"many2many:article_tags;"`
 
